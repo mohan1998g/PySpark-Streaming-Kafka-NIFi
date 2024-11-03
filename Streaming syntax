@@ -1,0 +1,133 @@
+In PySpark, Structured Streaming is the primary API for building streaming applications. Structured Streaming is built on Spark SQL, providing a high-level abstraction for working with streaming data similar to static data in DataFrames.
+
+Basic Syntax of PySpark Structured Streaming
+Here's the general structure for creating a Structured Streaming application in PySpark:
+
+python
+Copy code
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+
+# Step 1: Initialize Spark Session
+spark = SparkSession.builder \
+    .appName("StructuredStreamingApp") \
+    .getOrCreate()
+
+# Step 2: Define Input Data Stream (e.g., reading from Kafka, file source, socket, etc.)
+input_stream = spark.readStream \
+    .format("source_format") \
+    .option("option_key", "option_value") \
+    .load()
+
+# Step 3: Apply Transformations (Optional)
+transformed_stream = input_stream \
+    .withColumn("new_column", expr("transformation_expression")) \
+    .select("column1", "column2", "new_column")
+
+# Step 4: Define Output Sink (e.g., console, Kafka, file, etc.)
+query = transformed_stream.writeStream \
+    .format("sink_format") \
+    .outputMode("output_mode") \
+    .option("option_key", "option_value") \
+    .start()
+
+# Step 5: Await Termination
+query.awaitTermination()
+Explanation of Key Components
+SparkSession: The starting point for PySpark applications. It's used to initialize Spark and access all of Spark’s features, including streaming.
+
+Input Source: Structured Streaming supports various input sources such as:
+
+File Source: For files in a directory.
+Kafka Source: For reading from Kafka topics.
+Socket Source: For reading data from a TCP socket.
+Rate Source: Generates data at a fixed rate, useful for testing.
+Common syntax for reading from different sources:
+
+python
+Copy code
+# From Files (JSON, CSV, Parquet, etc.)
+input_stream = spark.readStream.format("json").option("path", "path/to/data").load()
+
+# From Kafka
+input_stream = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("subscribe", "topic_name") \
+    .load()
+
+# From Socket
+input_stream = spark.readStream.format("socket").option("host", "localhost").option("port", "9999").load()
+
+# Rate Source (for testing)
+input_stream = spark.readStream.format("rate").option("rowsPerSecond", 10).load()
+Transformations: You can apply various transformations to the streaming DataFrame just like with static DataFrames, including:
+
+select(), filter(), groupBy(), withColumn()
+SQL expressions via expr() or selectExpr()
+Output Sink: Supported output modes and sinks:
+
+Console Sink: Outputs data to the console (for debugging).
+File Sink: Writes data to a directory.
+Kafka Sink: Sends processed data to a Kafka topic.
+Memory Sink: Stores data in-memory for debugging.
+Syntax for different sinks:
+
+python
+Copy code
+# Console Output
+query = transformed_stream.writeStream.format("console").outputMode("append").start()
+
+# File Output
+query = transformed_stream.writeStream \
+    .format("parquet") \
+    .option("path", "path/to/output") \
+    .option("checkpointLocation", "path/to/checkpoint") \
+    .outputMode("append") \
+    .start()
+
+# Kafka Output
+query = transformed_stream.writeStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("topic", "output_topic") \
+    .option("checkpointLocation", "path/to/checkpoint") \
+    .start()
+Output Mode: Three output modes control how results are written to the output:
+
+append: Only new rows are written to the output.
+complete: The entire result is recalculated and written.
+update: Only updated rows are written (requires aggregation).
+awaitTermination(): This function blocks until the streaming query is terminated, allowing the program to run continuously until manually stopped.
+
+Example: PySpark Structured Streaming from Kafka to Console
+python
+Copy code
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import expr
+
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("KafkaToConsole") \
+    .getOrCreate()
+
+# Read streaming data from Kafka
+input_stream = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "localhost:9092") \
+    .option("subscribe", "input_topic") \
+    .load() \
+    .selectExpr("CAST(key AS STRING)", "CAST(value AS STRING)")
+
+# Perform transformations
+transformed_stream = input_stream.withColumn("uppercase_value", expr("UPPER(value)"))
+
+# Write the output to console
+query = transformed_stream.writeStream \
+    .format("console") \
+    .outputMode("append") \
+    .start()
+
+# Await termination
+query.awaitTermination()
+This example connects to a Kafka topic, transforms the message values to uppercase, and prints the results to the console. The program will keep running until manually stopped.
