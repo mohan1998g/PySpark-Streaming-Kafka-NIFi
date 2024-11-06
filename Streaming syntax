@@ -1,10 +1,10 @@
-In PySpark, Structured Streaming is the primary API for building streaming applications. Structured Streaming is built on Spark SQL, providing a high-level abstraction for working with streaming data similar to static data in DataFrames.
+In PySpark, Structured Streaming is the primary API for building streaming applications. 
+Structured Streaming is built on Spark SQL, providing a high-level abstraction for working with streaming data similar to static data in DataFrames.
 
 Basic Syntax of PySpark Structured Streaming
 Here's the general structure for creating a Structured Streaming application in PySpark:
 
-python
-Copy code
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 
@@ -44,8 +44,7 @@ Socket Source: For reading data from a TCP socket.
 Rate Source: Generates data at a fixed rate, useful for testing.
 Common syntax for reading from different sources:
 
-python
-Copy code
+
 # From Files (JSON, CSV, Parquet, etc.)
 input_stream = spark.readStream.format("json").option("path", "path/to/data").load()
 
@@ -73,8 +72,7 @@ Kafka Sink: Sends processed data to a Kafka topic.
 Memory Sink: Stores data in-memory for debugging.
 Syntax for different sinks:
 
-python
-Copy code
+
 # Console Output
 query = transformed_stream.writeStream.format("console").outputMode("append").start()
 
@@ -101,8 +99,7 @@ update: Only updated rows are written (requires aggregation).
 awaitTermination(): This function blocks until the streaming query is terminated, allowing the program to run continuously until manually stopped.
 
 Example: PySpark Structured Streaming from Kafka to Console
-python
-Copy code
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import expr
 
@@ -130,4 +127,5 @@ query = transformed_stream.writeStream \
 
 # Await termination
 query.awaitTermination()
-This example connects to a Kafka topic, transforms the message values to uppercase, and prints the results to the console. The program will keep running until manually stopped.
+This example connects to a Kafka topic, transforms the message values to uppercase, and prints the results to the console. 
+The program will keep running until manually stopped.
